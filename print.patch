@@ -1,0 +1,48 @@
+--- go/src/cmd/compile/internal/base/print.go	2021-08-15 08:23:31.911212186 -0400
++++ go/src/cmd/compile/internal/base/print_.go	2021-08-15 08:23:29.515175934 -0400
+@@ -108,38 +108,18 @@
+ 	ErrorfAt(Pos, format, args...)
+ }
+ 
+-// ErrorfAt reports a formatted error message at pos.
++// ErrorfAt warns instead of stopping the compiler
+ func ErrorfAt(pos src.XPos, format string, args ...interface{}) {
+ 	msg := fmt.Sprintf(format, args...)
+ 
+-	if strings.HasPrefix(msg, "syntax error") {
+-		numSyntaxErrors++
+-		// only one syntax error per line, no matter what error
+-		if sameline(lasterror.syntax, pos) {
+-			return
+-		}
+-		lasterror.syntax = pos
+-	} else {
+-		// only one of multiple equal non-syntax errors per line
+-		// (FlushErrors shows only one of them, so we filter them
+-		// here as best as we can (they may not appear in order)
+-		// so that we don't count them here and exit early, and
+-		// then have nothing to show for.)
+-		if sameline(lasterror.other, pos) && lasterror.msg == msg {
+-			return
+-		}
+-		lasterror.other = pos
+-		lasterror.msg = msg
+-	}
+-
+ 	addErrorMsg(pos, "%s", msg)
+-	numErrors++
+ 
+-	hcrash()
+-	if numErrors >= 10 && Flag.LowerE == 0 {
+-		FlushErrors()
+-		fmt.Printf("%v: too many errors\n", FmtPos(pos))
+-		ErrorExit()
++	// Only quit on syntax errors
++	if strings.Contains(msg, "syntax error") || strings.Contains(msg, "undefined") {
++		// this will trigger compiler to quit
++		numErrors++
++		
++		hcrash()
+ 	}
+ }
+ 
