@@ -9,9 +9,11 @@ bin:
 	sudo cp go/bin/go /bin/wgo
 	sudo cp go/bin/gofmt /bin/wgofmt
 
-run:
-	-go run test.go
-	-wgo run test.go
+test:
+	go run test.go
+	wgo run test.go
 
 clean:
 	rm -rf go
+
+.PHONY: all bin test clean
